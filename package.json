@@ -1,0 +1,30 @@
+{
+  "name": "kail1112",
+  "version": "0.0.0",
+  "private": true,
+  "homepage": "https://github.com/Kail1112/kail1112#readme",
+  "bugs": {
+    "url": "https://github.com/Kail1112/kail1112/issues"
+  },
+  "license": "MIT",
+  "author": "Mikhail Ifutin",
+  "scripts": {
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.json": "prettier --write"
+  },
+  "devDependencies": {
+    "@types/node": "20.19.27",
+    "husky": "9.1.7",
+    "lint-staged": "16.2.7",
+    "prettier": "3.7.4",
+    "prettier-plugin-packagejson": "2.5.20",
+    "prettier-plugin-sort-json": "4.1.1"
+  },
+  "packageManager": "pnpm@10.27.0",
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=10"
+  }
+}
