@@ -93,7 +93,6 @@ const tsconfigJSON = Object.values(TSCONFIG_FIELDS).reduce<ITsconfigJSON>(
     switch (key) {
       case TSCONFIG_FIELDS.COMPILER_OPTIONS:
         acc[key] = {
-          ...TSCONFIG[key],
           [TSCONFIG_COMPILER_OPTIONS_FIELDS.DECLARATION]: true,
           [TSCONFIG_COMPILER_OPTIONS_FIELDS.DECLARATION_MAP]: true,
           [TSCONFIG_COMPILER_OPTIONS_FIELDS.EMIT_DECLARATION_ONLY]: true,
@@ -112,6 +111,7 @@ const tsconfigJSON = Object.values(TSCONFIG_FIELDS).reduce<ITsconfigJSON>(
   },
   {
     [TSCONFIG_FIELDS.EXCLUDE]: ['node_modules', OUTPUT_DIRNAME],
+    [TSCONFIG_FIELDS.EXTENDS]: '../../tsconfig.json',
     [TSCONFIG_FIELDS.INCLUDE]: [`${SOURCE_DIRNAME}/**/*.ts`],
   },
 );

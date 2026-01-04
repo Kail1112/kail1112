@@ -31,6 +31,7 @@ export enum TSCONFIG_COMPILER_OPTIONS_FIELDS {
 export enum TSCONFIG_FIELDS {
   COMPILER_OPTIONS = 'compilerOptions',
   EXCLUDE = 'exclude',
+  EXTENDS = 'extends',
   INCLUDE = 'include',
 }
 

@@ -1,0 +1,39 @@
+{
+  "name": "@kail1112/find-unused-modules-webpack-plugin",
+  "version": "0.0.0",
+  "homepage": "https://github.com/Kail1112/kail1112#readme",
+  "bugs": {
+    "url": "https://github.com/Kail1112/kail1112/issues"
+  },
+  "license": "MIT",
+  "author": "Mikhail Ifutin",
+  "exports": {
+    ".": {
+      "types": "./build/types/index.d.ts",
+      "import": "./build/esm/index.js",
+      "require": "./build/cjs/index.cjs"
+    }
+  },
+  "scripts": {
+    "build": "pnpm clean && build-package && tsc",
+    "clean": "shx rm -rf build",
+    "dev": "nodemon -e js,ts,json --watch src --exec \"pnpm build\""
+  },
+  "dependencies": {
+    "minimatch": ">=6.0.0 <=11.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "nodemon": "catalog:",
+    "shx": "catalog:",
+    "webpack": "catalog:"
+  },
+  "peerDependencies": {
+    "webpack": "catalog:"
+  },
+  "engines": {
+    "node": ">=20",
+    "npm": ">=10",
+    "pnpm": ">=10"
+  }
+}
