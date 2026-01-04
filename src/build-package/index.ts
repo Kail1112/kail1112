@@ -7,6 +7,10 @@ import { globSync } from 'glob';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 
+import { ensureEnv } from '../utils.js';
+
+ensureEnv();
+
 enum OPTIONS {
   TYPES = 'types',
 }
@@ -14,10 +18,6 @@ enum TYPES {
   CJS = 'cjs',
   ESM = 'esm',
 }
-
-type ExtractExtension<Target> =
-  Target extends Partial<Record<'outFileExtension', infer Extension>> ? Extension : never;
-type Extensions = ExtractExtension<ModuleConfig>;
 
 interface IGenerateParams {
   filepath: string;
@@ -29,13 +29,11 @@ interface IGenerateResult {
 }
 type Generate = (params: IGenerateParams) => Promise<IGenerateResult>;
 
-const EXTENSIONS_MAP: Record<TYPES, Extensions> = {
-  [TYPES.CJS]: 'cjs',
-  [TYPES.ESM]: 'js',
-};
+const { OUTPUT_DIRNAME, SOURCE_DIRNAME } = process.env;
+
 const PATHS = {
-  BUILD: path.resolve('build'),
-  SRC: path.resolve('src'),
+  BUILD: path.resolve(OUTPUT_DIRNAME),
+  SRC: path.resolve(SOURCE_DIRNAME),
 };
 const TYPES_MAP: Record<TYPES, Pick<ModuleConfig, 'type'>['type']> = {
   [TYPES.CJS]: 'commonjs',
@@ -43,16 +41,14 @@ const TYPES_MAP: Record<TYPES, Pick<ModuleConfig, 'type'>['type']> = {
 };
 
 const generate: Generate = async ({ filepath: filepathParam, type }) => {
-  const extension = EXTENSIONS_MAP[type];
-
   const { base: _, ...parsed } = path.parse(filepathParam);
-  const formated = path.format({ ...parsed, ext: extension });
+  const formated = path.format({ ...parsed, ext: 'js' });
   const relative = path.relative(PATHS.SRC, formated);
 
   const { code } = await transformFile(filepathParam, {
     filename: filepathParam,
     jsc: { parser: { syntax: 'typescript' }, target: 'es2022' },
-    module: { outFileExtension: extension, resolveFully: true, type: TYPES_MAP[type] },
+    module: { resolveFully: true, type: TYPES_MAP[type] },
     sourceMaps: false,
   });
 
@@ -78,7 +74,7 @@ const { [OPTIONS.TYPES]: types } = yargs(hideBin(process.argv))
   .parseSync();
 
 (async () => {
-  const files = globSync('src/**/*.ts', { absolute: true, nodir: true, dot: true });
+  const files = globSync(`${SOURCE_DIRNAME}/**/*.ts`, { absolute: true, nodir: true, dot: true });
   const promises: Promise<IGenerateResult>[] = [];
 
   for (const type of types) {

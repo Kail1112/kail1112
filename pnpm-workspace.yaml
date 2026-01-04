@@ -3,4 +3,7 @@ engineStrict: true
 ignoredBuiltDependencies:
   - '@swc/core'
 
+packages:
+  - packages/*
+
 saveExact: true
