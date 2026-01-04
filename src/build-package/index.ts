@@ -1,9 +1,8 @@
 #!/usr/bin/env node
-import fs from 'fs';
-import path from 'path';
-
 import { type ModuleConfig, transformFile } from '@swc/core';
+import fs from 'fs';
 import { globSync } from 'glob';
+import path from 'path';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 
@@ -63,18 +62,18 @@ const { [OPTIONS.TYPES]: types } = yargs(hideBin(process.argv))
   })
   .options({
     [OPTIONS.TYPES]: {
-      type: 'array',
-      demandOption: true,
       choices: [TYPES.CJS, TYPES.ESM],
       default: [TYPES.CJS, TYPES.ESM],
+      demandOption: true,
+      type: 'array',
     },
   })
   .help()
   .version(false)
   .parseSync();
 
-(async () => {
-  const files = globSync(`${SOURCE_DIRNAME}/**/*.ts`, { absolute: true, nodir: true, dot: true });
+void (async (): Promise<void> => {
+  const files = globSync(`${SOURCE_DIRNAME}/**/*.ts`, { absolute: true, dot: true, nodir: true });
   const promises: Promise<IGenerateResult>[] = [];
 
   for (const type of types) {
@@ -89,7 +88,7 @@ const { [OPTIONS.TYPES]: types } = yargs(hideBin(process.argv))
 
   const result = await Promise.all(promises);
 
-  for (const { filepath, code } of result) {
+  for (const { code, filepath } of result) {
     const directory = path.dirname(filepath);
 
     if (!fs.existsSync(directory)) {

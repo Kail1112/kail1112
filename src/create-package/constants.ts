@@ -22,6 +22,8 @@ export enum TSCONFIG_COMPILER_OPTIONS_FIELDS {
   DECLARATION = 'declaration',
   DECLARATION_MAP = 'declarationMap',
   EMIT_DECLARATION_ONLY = 'emitDeclarationOnly',
+  MODULE = 'module',
+  MODULE_RESOLUTION = 'moduleResolution',
   OUT_DIR = 'outDir',
 }
 
