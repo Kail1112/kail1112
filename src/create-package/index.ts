@@ -68,6 +68,11 @@ const packageJSON = Object.values(PACKAGE_JSON_FIELDS).reduce<IPackageJSON>(
     return acc;
   },
   {
+    [PACKAGE_JSON_FIELDS.DEV_DEPENDENCIES]: {
+      '@types/node': 'catalog:',
+      nodemon: 'catalog:',
+      shx: 'catalog:',
+    },
     [PACKAGE_JSON_FIELDS.EXPORTS]: {
       '.': {
         import: `./${OUTPUT_DIRNAME}/esm/index.js`,
@@ -79,6 +84,7 @@ const packageJSON = Object.values(PACKAGE_JSON_FIELDS).reduce<IPackageJSON>(
     [PACKAGE_JSON_FIELDS.SCRIPTS]: {
       build: 'pnpm clean && build-package && tsc',
       clean: 'shx rm -rf build',
+      dev: 'nodemon -e js,ts,json --watch src --exec "pnpm build"',
     },
   },
 );

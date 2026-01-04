@@ -16,9 +16,8 @@
   "scripts": {
     "bin:clean": "shx rm -rf build",
     "bin:compile": "swc src --strip-leading-paths -d build",
-    "eslint": "eslint .",
-    "eslint:check": "pnpm eslint",
-    "eslint:fix": "pnpm eslint --fix",
+    "build": "turbo run build",
+    "dev": "turbo run dev",
     "postinstall": "pnpm bin:clean && pnpm bin:compile",
     "prepare": "husky"
   },
@@ -46,7 +45,8 @@
     "prettier": "catalog:",
     "prettier-plugin-packagejson": "2.5.20",
     "prettier-plugin-sort-json": "4.1.1",
-    "shx": "0.4.0",
+    "shx": "catalog:",
+    "turbo": "2.7.2",
     "typescript": "catalog:",
     "yaml": "2.8.2",
     "yargs": "18.0.0"
