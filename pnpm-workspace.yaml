@@ -1,2 +1,6 @@
 engineStrict: true
+
+ignoredBuiltDependencies:
+  - '@swc/core'
+
 saveExact: true
