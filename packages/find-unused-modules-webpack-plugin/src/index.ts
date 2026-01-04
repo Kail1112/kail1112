@@ -23,7 +23,7 @@ import type {
   IStatePath,
 } from './types';
 
-class FindUnusedModulesPlugin implements WebpackPluginInstance {
+export class FindUnusedModulesPlugin implements WebpackPluginInstance {
   static name = 'FindUnusedModulesPlugin' as const;
 
   private files = new Set<string>();
@@ -121,7 +121,7 @@ class FindUnusedModulesPlugin implements WebpackPluginInstance {
       message += `\n  - ${relative}`;
     });
 
-    compilation.warnings.push(new Error(`Found unused files: ${message}`));
+    compilation.warnings.push(new Error(`Found unused modules: ${message}`));
   }
 
   getPatternList({ patterns }: IParamsGetPatternList): string[] {
