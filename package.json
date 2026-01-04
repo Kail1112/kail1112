@@ -14,10 +14,9 @@
     "create-package": "./build/create-package/index.js"
   },
   "scripts": {
-    "bin:build": "pnpm bin:clean && pnpm bin:compile",
     "bin:clean": "shx rm -rf build",
     "bin:compile": "swc src --strip-leading-paths -d build",
-    "postinstall": "pnpm bin:build",
+    "postinstall": "pnpm bin:clean && pnpm bin:compile",
     "prepare": "husky"
   },
   "lint-staged": {
@@ -31,9 +30,11 @@
     "@types/yargs": "17.0.35",
     "dotenv": "17.2.3",
     "dotenv-expand": "12.0.3",
+    "eslint": "catalog:",
     "glob": "13.0.0",
     "glob-parent": "5.1.2",
     "husky": "9.1.7",
+    "kail1112": "workspace:^",
     "lint-staged": "16.2.7",
     "prettier": "3.7.4",
     "prettier-plugin-packagejson": "2.5.20",

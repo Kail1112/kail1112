@@ -1,0 +1,29 @@
+{
+  "name": "@kail1112/eslint-configs",
+  "version": "0.0.0",
+  "homepage": "https://github.com/Kail1112/kail1112#readme",
+  "bugs": {
+    "url": "https://github.com/Kail1112/kail1112/issues"
+  },
+  "license": "MIT",
+  "author": "Mikhail Ifutin",
+  "exports": {
+    ".": {
+      "types": "./build/types/index.d.ts",
+      "import": "./build/esm/index.js",
+      "require": "./build/cjs/index.cjs"
+    }
+  },
+  "scripts": {
+    "build": "pnpm clean && build-package && tsc",
+    "clean": "shx rm -rf build"
+  },
+  "peerDependencies": {
+    "eslint": "catalog:"
+  },
+  "engines": {
+    "node": ">=20",
+    "npm": ">=10",
+    "pnpm": ">=10"
+  }
+}

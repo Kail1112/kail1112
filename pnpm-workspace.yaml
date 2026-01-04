@@ -1,9 +1,13 @@
+packages:
+  - packages/*
+
+catalogs:
+  default:
+    eslint: ~9.39.2
+
 engineStrict: true
 
 ignoredBuiltDependencies:
   - '@swc/core'
-
-packages:
-  - packages/*
 
 saveExact: true
