@@ -1,16 +1,13 @@
-import type {
-  PACKAGE_JSON_FIELDS,
-  TSCONFIG_COMPILER_OPTIONS_FIELDS,
-  TSCONFIG_FIELDS,
-} from './constants.js';
+import type { CompilerOptions, ModuleKind, ModuleResolutionKind } from 'typescript';
 
-interface IPackageJSONDefaultExport {
-  import: string;
-  require: string;
-  types: string;
+import type { EXPORTS, OPTIONS, PACKAGE_JSON_FIELDS } from './constants.js';
+
+export interface IOptions {
+  [OPTIONS.NAME]: string;
 }
+
 interface IPackageJSONExports {
-  '.': IPackageJSONDefaultExport;
+  '.': Record<EXPORTS, string>;
 }
 export interface IPackageJSON extends Kail1112.AnyObject {
   [PACKAGE_JSON_FIELDS.EXPORTS]: IPackageJSONExports;
@@ -18,16 +15,25 @@ export interface IPackageJSON extends Kail1112.AnyObject {
   [PACKAGE_JSON_FIELDS.SCRIPTS]: Record<string, string>;
 }
 
-interface ITsconfigJSONCompilerOptions extends Kail1112.AnyObject {
-  [TSCONFIG_COMPILER_OPTIONS_FIELDS.DECLARATION]: boolean;
-  [TSCONFIG_COMPILER_OPTIONS_FIELDS.DECLARATION_MAP]: boolean;
-  [TSCONFIG_COMPILER_OPTIONS_FIELDS.EMIT_DECLARATION_ONLY]: boolean;
-  [TSCONFIG_COMPILER_OPTIONS_FIELDS.OUT_DIR]: string;
-}
-export interface ITsconfigJSON extends Kail1112.AnyObject {
-  [TSCONFIG_FIELDS.COMPILER_OPTIONS]?: ITsconfigJSONCompilerOptions;
-}
-
 export interface IPnpmWorkspaceYAML {
   packages: string[];
+}
+
+export interface IStatePath {
+  cwd: string;
+  src: string;
+}
+
+interface ITsconfigJSONCompilerOptions extends Omit<
+  CompilerOptions,
+  'module' | 'moduleResolution'
+> {
+  module?: keyof typeof ModuleKind;
+  moduleResolution?: keyof typeof ModuleResolutionKind | 'node';
+}
+export interface ITsconfigJSON {
+  compilerOptions?: ITsconfigJSONCompilerOptions;
+  exclude?: string[];
+  extends?: string | string[];
+  include?: string[];
 }

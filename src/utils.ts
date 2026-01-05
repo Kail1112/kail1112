@@ -14,3 +14,9 @@ export const ensureEnv = (): void => {
 
   dotenvExpand.expand(output);
 };
+
+export const normalizePath = (param: string): string => {
+  const normalized = path.normalize(param);
+
+  return normalized.replaceAll(path.sep, '/');
+};

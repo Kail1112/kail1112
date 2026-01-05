@@ -1,14 +1,11 @@
 import type { ModuleConfig } from '@swc/core';
 
+import { TYPES } from '../constants.js';
+
 export enum OPTIONS {
   CLEAR = 'clear',
   TYPES = 'types',
   WATCH = 'watch',
-}
-
-export enum TYPES {
-  CJS = 'cjs',
-  ESM = 'esm',
 }
 
 export const TYPES_MAP: Record<TYPES, ModuleConfig['type']> = {

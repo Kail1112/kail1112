@@ -14,11 +14,9 @@
     "create-package": "./build/create-package/index.js"
   },
   "scripts": {
-    "bin:clean": "shx rm -rf build",
-    "bin:compile": "swc src --strip-leading-paths -d build",
     "build": "turbo run build",
     "dev": "turbo run dev",
-    "postinstall": "pnpm bin:clean && pnpm bin:compile",
+    "postinstall": "shx rm -rf build && swc src --strip-leading-paths -d build",
     "prepare": "husky"
   },
   "lint-staged": {

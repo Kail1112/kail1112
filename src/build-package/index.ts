@@ -8,9 +8,10 @@ import typescript from 'typescript';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 
-import { ensureEnv } from '../utils.js';
+import { TYPES } from '../constants.js';
+import { ensureEnv, normalizePath } from '../utils.js';
 
-import { OPTIONS, TYPES, TYPES_MAP } from './constants.js';
+import { OPTIONS, TYPES_MAP } from './constants.js';
 import type { IOptions, IOutput, IParamsOutput, IStatePath } from './types.js';
 
 class BuildPackage {
@@ -68,10 +69,7 @@ class BuildPackage {
   }
 
   private match(filepath: string): boolean {
-    const normalized = path.normalize(filepath);
-    const replaced = normalized.replaceAll(path.sep, '/');
-
-    return minimatch(replaced, this.pattern);
+    return minimatch(normalizePath(filepath), this.pattern);
   }
 
   private output({ filepath, type }: IParamsOutput): string {

@@ -1,44 +1,166 @@
 #!/usr/bin/env node
-import fs from 'fs';
+import { existsSync, readFileSync } from 'fs';
+import { mkdir, writeFile } from 'fs/promises';
 import globParent from 'glob-parent';
 import path from 'path';
 import { parse } from 'yaml';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 
-import { ensureEnv } from '../utils.js';
+import { ensureEnv, normalizePath } from '../utils.js';
 
 import {
+  ENTRIES_MAP_BY_EXPORTS,
+  EXPORTS,
+  EXPORTS_MAP_BY_TYPES,
   FILENAMES,
+  OPTIONS,
   PACKAGE_JSON_FIELDS,
-  ROOT_PATH,
-  ROOT_PATHS,
-  TSCONFIG_COMPILER_OPTIONS_FIELDS,
-  TSCONFIG_FIELDS,
 } from './constants.js';
-import type { IPackageJSON, IPnpmWorkspaceYAML, ITsconfigJSON } from './types.js';
+import type {
+  IOptions,
+  IPackageJSON,
+  IPnpmWorkspaceYAML,
+  IStatePath,
+  ITsconfigJSON,
+} from './types.js';
 
 ensureEnv();
 
-enum OPTIONS {
-  NAME = 'name',
+class CreatePackage {
+  private path: IStatePath = { cwd: '', src: '' };
+  private root = path.resolve(import.meta.dirname, '../..');
+
+  constructor(private options: IOptions) {
+    this.init();
+  }
+
+  get packageJSON(): IPackageJSON {
+    const { [OPTIONS.NAME]: nameOption } = this.options;
+
+    const { OUTPUT_DIRNAME } = process.env;
+
+    const string = this.reader(FILENAMES.PACKAGE_JSON);
+    const json = JSON.parse(string) as IPackageJSON;
+    const { [PACKAGE_JSON_FIELDS.NAME]: nameScope } = json;
+
+    const exports = Object.values(EXPORTS).reduce<Record<string, string>>((acc, value) => {
+      const result = [
+        '.',
+        OUTPUT_DIRNAME,
+        EXPORTS_MAP_BY_TYPES[value],
+        ENTRIES_MAP_BY_EXPORTS[value],
+      ].join('/');
+
+      return { ...acc, [value]: result };
+    }, {});
+
+    return Object.values(PACKAGE_JSON_FIELDS).reduce<IPackageJSON>(
+      (acc, field) => {
+        acc[field] ??= json[field];
+
+        return acc;
+      },
+      {
+        [PACKAGE_JSON_FIELDS.EXPORTS]: { '.': exports },
+        [PACKAGE_JSON_FIELDS.NAME]: `@${nameScope}/${nameOption}`,
+        [PACKAGE_JSON_FIELDS.SCRIPTS]: {
+          build: 'build-package --clear',
+          dev: 'pnpm build --watch',
+        },
+      },
+    );
+  }
+
+  get pnpmWorkspaceYAML(): IPnpmWorkspaceYAML {
+    return parse(this.reader(FILENAMES.PNPM_WORKSPACE_YAML)) as IPnpmWorkspaceYAML;
+  }
+
+  get tsconfigJSON(): ITsconfigJSON {
+    const { cwd } = this.path;
+
+    const { OUTPUT_DIRNAME, SOURCE_DIRNAME } = process.env;
+
+    const tsconfig = path.resolve(this.root, FILENAMES.TSCONFIG_JSON);
+    const relative = path.relative(cwd, tsconfig);
+
+    return {
+      compilerOptions: {
+        declaration: true,
+        declarationMap: true,
+        emitDeclarationOnly: true,
+        module: 'ES2022',
+        moduleResolution: 'node',
+        outDir: `./${OUTPUT_DIRNAME}/${EXPORTS_MAP_BY_TYPES[EXPORTS.TYPES]}`,
+      },
+      exclude: ['node_modules', OUTPUT_DIRNAME],
+      extends: normalizePath(relative),
+      include: [`${SOURCE_DIRNAME}/**/*.ts`],
+    };
+  }
+
+  private init(): void {
+    ensureEnv();
+
+    const { [OPTIONS.NAME]: name } = this.options;
+
+    const { SOURCE_DIRNAME } = process.env;
+
+    const {
+      packages: [pattern = ''],
+    } = this.pnpmWorkspaceYAML;
+    const workspace = globParent(path.resolve(this.root, pattern));
+    const cwd = path.resolve(workspace, name);
+
+    Object.assign(this.path, { cwd, src: path.resolve(cwd, SOURCE_DIRNAME) });
+  }
+
+  private reader(filename: string): string {
+    const filepath = path.resolve(this.root, filename);
+
+    return readFileSync(filepath, 'utf8');
+  }
+
+  private stringify(filename: FILENAMES): string {
+    let target;
+
+    switch (filename) {
+      case FILENAMES.PACKAGE_JSON:
+        target = this.packageJSON;
+        break;
+
+      default:
+        target = this.tsconfigJSON;
+        break;
+    }
+
+    return JSON.stringify(target, null, '\t');
+  }
+
+  private async save(): Promise<void> {
+    const { cwd, src } = this.path;
+
+    if (!existsSync(src)) {
+      await mkdir(src, { recursive: true });
+    }
+
+    const filenames = [FILENAMES.PACKAGE_JSON, FILENAMES.TSCONFIG_JSON];
+    const promises = filenames.map((filename) => {
+      const filepath = path.resolve(cwd, filename);
+      const data = this.stringify(filename);
+
+      return writeFile(filepath, data);
+    });
+
+    await Promise.all(promises);
+  }
+
+  async run(): Promise<void> {
+    await this.save();
+  }
 }
 
-const { OUTPUT_DIRNAME, SOURCE_DIRNAME } = process.env;
-
-const PACKAGE_JSON = JSON.parse(
-  fs.readFileSync(ROOT_PATHS.PACKAGE_JSON, { encoding: 'utf-8' }),
-) as IPackageJSON;
-const {
-  packages: [PACKAGES_PATTERN],
-} = parse(
-  fs.readFileSync(ROOT_PATHS.PNPM_WORKSPACE_YAML, { encoding: 'utf-8' }),
-) as IPnpmWorkspaceYAML;
-const TSCONFIG = JSON.parse(
-  fs.readFileSync(ROOT_PATHS.TSCONFIG_JSON, { encoding: 'utf-8' }),
-) as ITsconfigJSON;
-
-const { [OPTIONS.NAME]: name } = yargs(hideBin(process.argv))
+const options = yargs(hideBin(process.argv))
   .parserConfiguration({
     'dot-notation': false,
     'parse-positional-numbers': false,
@@ -53,66 +175,6 @@ const { [OPTIONS.NAME]: name } = yargs(hideBin(process.argv))
   .help()
   .version(false)
   .parseSync();
+const creator = new CreatePackage(options);
 
-const PACKAGE_PATH = globParent(path.join(ROOT_PATH, PACKAGES_PATTERN ?? 'packages'));
-const PACKAGE_PATHS = {
-  PACKAGE_JSON: path.resolve(PACKAGE_PATH, name, FILENAMES.PACKAGE_JSON),
-  SOURCE_PATH: path.resolve(PACKAGE_PATH, name, SOURCE_DIRNAME),
-  TSCONFIG_JSON: path.resolve(PACKAGE_PATH, name, FILENAMES.TSCONFIG_JSON),
-};
-
-const packageJSON = Object.values(PACKAGE_JSON_FIELDS).reduce<IPackageJSON>(
-  (acc, key) => {
-    acc[key] ??= PACKAGE_JSON[key];
-
-    return acc;
-  },
-  {
-    [PACKAGE_JSON_FIELDS.EXPORTS]: {
-      '.': {
-        import: `./${OUTPUT_DIRNAME}/esm/index.js`,
-        require: `./${OUTPUT_DIRNAME}/cjs/index.cjs`,
-        types: `./${OUTPUT_DIRNAME}/types/index.d.ts`,
-      },
-    },
-    [PACKAGE_JSON_FIELDS.NAME]: `@${PACKAGE_JSON[PACKAGE_JSON_FIELDS.NAME]}/${name}`,
-    [PACKAGE_JSON_FIELDS.SCRIPTS]: {
-      build: 'build-package --clear',
-      dev: 'pnpm build --watch',
-    },
-  },
-);
-const tsconfigJSON = Object.values(TSCONFIG_FIELDS).reduce<ITsconfigJSON>(
-  (acc, key) => {
-    switch (key) {
-      case TSCONFIG_FIELDS.COMPILER_OPTIONS:
-        acc[key] = {
-          [TSCONFIG_COMPILER_OPTIONS_FIELDS.DECLARATION]: true,
-          [TSCONFIG_COMPILER_OPTIONS_FIELDS.DECLARATION_MAP]: true,
-          [TSCONFIG_COMPILER_OPTIONS_FIELDS.EMIT_DECLARATION_ONLY]: true,
-          [TSCONFIG_COMPILER_OPTIONS_FIELDS.MODULE]: 'ES2022',
-          [TSCONFIG_COMPILER_OPTIONS_FIELDS.MODULE_RESOLUTION]: 'node',
-          [TSCONFIG_COMPILER_OPTIONS_FIELDS.OUT_DIR]: `./${OUTPUT_DIRNAME}/types`,
-        };
-        break;
-
-      default:
-        acc[key] ??= TSCONFIG[key];
-        break;
-    }
-
-    return acc;
-  },
-  {
-    [TSCONFIG_FIELDS.EXCLUDE]: ['node_modules', OUTPUT_DIRNAME],
-    [TSCONFIG_FIELDS.EXTENDS]: '../../tsconfig.json',
-    [TSCONFIG_FIELDS.INCLUDE]: [`${SOURCE_DIRNAME}/**/*.ts`],
-  },
-);
-
-if (!fs.existsSync(PACKAGE_PATHS.SOURCE_PATH)) {
-  fs.mkdirSync(PACKAGE_PATHS.SOURCE_PATH, { recursive: true });
-}
-
-fs.writeFileSync(PACKAGE_PATHS.PACKAGE_JSON, JSON.stringify(packageJSON), {});
-fs.writeFileSync(PACKAGE_PATHS.TSCONFIG_JSON, JSON.stringify(tsconfigJSON));
+void creator.run();

@@ -1,4 +1,6 @@
-import type { OPTIONS, TYPES } from './constants.js';
+import type { TYPES } from '../constants.js';
+
+import type { OPTIONS } from './constants.js';
 
 export interface IOptions {
   [OPTIONS.CLEAR]: boolean;
