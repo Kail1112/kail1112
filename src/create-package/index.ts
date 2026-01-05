@@ -68,9 +68,6 @@ const packageJSON = Object.values(PACKAGE_JSON_FIELDS).reduce<IPackageJSON>(
     return acc;
   },
   {
-    [PACKAGE_JSON_FIELDS.DEV_DEPENDENCIES]: {
-      shx: 'catalog:',
-    },
     [PACKAGE_JSON_FIELDS.EXPORTS]: {
       '.': {
         import: `./${OUTPUT_DIRNAME}/esm/index.js`,
@@ -80,9 +77,8 @@ const packageJSON = Object.values(PACKAGE_JSON_FIELDS).reduce<IPackageJSON>(
     },
     [PACKAGE_JSON_FIELDS.NAME]: `@${PACKAGE_JSON[PACKAGE_JSON_FIELDS.NAME]}/${name}`,
     [PACKAGE_JSON_FIELDS.SCRIPTS]: {
-      base: 'shx rm -rf build && tsc',
-      build: 'pnpm base && build-package',
-      dev: 'pnpm base && build-package --watch',
+      build: 'build-package --clear',
+      dev: 'pnpm build --watch',
     },
   },
 );

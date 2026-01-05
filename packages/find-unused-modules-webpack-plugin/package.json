@@ -15,15 +15,13 @@
     }
   },
   "scripts": {
-    "base": "shx rm -rf build && tsc",
-    "build": "pnpm base && build-package",
-    "dev": "pnpm base && build-package --watch"
+    "build": "build-package --clear",
+    "dev": "pnpm build --watch"
   },
   "dependencies": {
     "minimatch": "catalog:"
   },
   "devDependencies": {
-    "shx": "catalog:",
     "webpack": "catalog:"
   },
   "peerDependencies": {

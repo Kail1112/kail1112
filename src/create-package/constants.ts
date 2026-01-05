@@ -9,7 +9,6 @@ export enum FILENAMES {
 export enum PACKAGE_JSON_FIELDS {
   AUTHOR = 'author',
   BUGS = 'bugs',
-  DEV_DEPENDENCIES = 'devDependencies',
   ENGINES = 'engines',
   EXPORTS = 'exports',
   HOMEPAGE = 'homepage',

@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 import { transformFile } from '@swc/core';
-import { existsSync, watch } from 'fs';
+import { existsSync, readdirSync, rmSync, watch } from 'fs';
 import { mkdir, writeFile } from 'fs/promises';
-import { globSync } from 'glob';
 import { minimatch } from 'minimatch';
 import path from 'path';
+import typescript from 'typescript';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 
@@ -14,19 +14,22 @@ import { OPTIONS, TYPES, TYPES_MAP } from './constants.js';
 import type { IOptions, IOutput, IParamsOutput, IStatePath } from './types.js';
 
 class BuildPackage {
-  private path: IStatePath = { build: '', src: '' };
-  private pattern = '**/*.{js,ts}';
+  private path: IStatePath = { build: '', src: '', tsconfig: path.resolve('tsconfig.json') };
+  private pattern = '';
 
   constructor(private options: IOptions) {
     this.init();
   }
 
   private async generate(filepath: string): Promise<void> {
-    const { types } = this.options;
+    const { [OPTIONS.TYPES]: typesOption } = this.options;
+    const { tsconfig } = this.path;
 
+    const host = typescript.createSolutionBuilderHost(typescript.sys);
+    const builder = typescript.createSolutionBuilder(host, [tsconfig], {});
     const outputs: Promise<IOutput>[] = [];
 
-    for (const type of types) {
+    for (const type of typesOption) {
       const output = this.output({ filepath, type });
       const promise = transformFile(filepath, {
         filename: filepath,
@@ -47,6 +50,8 @@ class BuildPackage {
         return this.save(output);
       }),
     );
+
+    builder.build();
   }
 
   private init(): void {
@@ -58,6 +63,15 @@ class BuildPackage {
       build: path.resolve(OUTPUT_DIRNAME),
       src: path.resolve(SOURCE_DIRNAME),
     });
+
+    this.pattern = `**/${SOURCE_DIRNAME}/**/*.{js,ts}`;
+  }
+
+  private match(filepath: string): boolean {
+    const normalized = path.normalize(filepath);
+    const replaced = normalized.replaceAll(path.sep, '/');
+
+    return minimatch(replaced, this.pattern);
   }
 
   private output({ filepath, type }: IParamsOutput): string {
@@ -87,26 +101,20 @@ class BuildPackage {
     await writeFile(filepath, source, 'utf8');
   }
 
-  async run(): Promise<void> {
+  private watch(): void {
     const { [OPTIONS.WATCH]: watchOption } = this.options;
-    const { src } = this.path;
-
-    const { SOURCE_DIRNAME } = process.env;
-
-    const files = globSync(`${SOURCE_DIRNAME}/${this.pattern}`, {
-      absolute: true,
-      dot: true,
-      nodir: true,
-    });
-    const promises = files.map((filepath) => {
-      return this.generate(filepath);
-    });
-
-    await Promise.all(promises);
+    const { src, tsconfig } = this.path;
 
     if (!watchOption) {
       return;
     }
+
+    const host = typescript.createWatchCompilerHost(
+      tsconfig,
+      {},
+      typescript.sys,
+      typescript.createEmitAndSemanticDiagnosticsBuilderProgram,
+    );
 
     watch(src, { recursive: true }, (event, filename) => {
       if (!filename) {
@@ -114,7 +122,7 @@ class BuildPackage {
       }
 
       const filepath = path.resolve(src, filename);
-      const skip = !minimatch(filepath, this.pattern);
+      const skip = !this.match(filepath);
 
       if (skip) {
         return;
@@ -127,6 +135,33 @@ class BuildPackage {
         void this.generate(filepath);
       }
     });
+    typescript.createWatchProgram(host);
+  }
+
+  async run(): Promise<void> {
+    const { [OPTIONS.CLEAR]: clearOption } = this.options;
+    const { build, src } = this.path;
+
+    if (clearOption) {
+      rmSync(build, { force: true, recursive: true });
+    }
+
+    const objects = readdirSync(src, { recursive: true });
+    const promises = objects.reduce<Promise<void>[]>((acc, object) => {
+      if (typeof object === 'string') {
+        const filepath = path.resolve(src, object);
+
+        if (this.match(filepath)) {
+          acc.push(this.generate(filepath));
+        }
+      }
+
+      return acc;
+    }, []);
+
+    await Promise.all(promises);
+
+    this.watch();
   }
 }
 
@@ -137,6 +172,7 @@ const options = yargs(hideBin(process.argv))
     'short-option-groups': false,
   })
   .options({
+    [OPTIONS.CLEAR]: { default: false, demandOption: true, type: 'boolean' },
     [OPTIONS.TYPES]: {
       choices: [TYPES.CJS, TYPES.ESM],
       default: [TYPES.CJS, TYPES.ESM],

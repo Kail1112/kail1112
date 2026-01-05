@@ -1,6 +1,7 @@
 import type { OPTIONS, TYPES } from './constants.js';
 
 export interface IOptions {
+  [OPTIONS.CLEAR]: boolean;
   [OPTIONS.TYPES]: TYPES[];
   [OPTIONS.WATCH]: boolean;
 }
@@ -18,4 +19,5 @@ export interface IParamsOutput {
 export interface IStatePath {
   build: string;
   src: string;
+  tsconfig: string;
 }

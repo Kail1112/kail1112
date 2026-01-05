@@ -12,6 +12,7 @@
     "skipLibCheck": true,
     "strict": true,
     "target": "ES2022",
+    "tsBuildInfoFile": "node_modules/.tsbuildinfo",
     "verbatimModuleSyntax": true
   },
   "exclude": ["node_modules", "build"],

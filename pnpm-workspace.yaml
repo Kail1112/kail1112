@@ -4,11 +4,10 @@ packages:
 catalogs:
   default:
     '@types/node': ~20.19.0
-    eslint: ~9.39.0
+    eslint: ^9.30.0
     globals: 14.0.0
     minimatch: ">=6.0.0"
     prettier: ~3.7.0
-    shx: ~0.4.0
     typescript: ~5.9.0
     webpack: ^5.1.0
 
