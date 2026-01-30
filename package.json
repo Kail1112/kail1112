@@ -15,8 +15,10 @@
   },
   "scripts": {
     "build": "turbo run build",
+    "configure": "pnpm configure:install && pnpm configure:build && pnpm rebuild && pnpm build",
+    "configure:build": "shx rm -rf build && swc src --strip-leading-paths -d build",
+    "configure:install": "pnpm i",
     "dev": "turbo run dev",
-    "postinstall": "shx rm -rf build && swc src --strip-leading-paths -d build",
     "prepare": "husky"
   },
   "lint-staged": {
@@ -37,7 +39,7 @@
     "globals": "catalog:",
     "husky": "9.1.7",
     "jiti": "2.6.1",
-    "kail1112": "workspace:^",
+    "kail1112": "link:",
     "lint-staged": "16.2.7",
     "minimatch": "catalog:",
     "prettier": "catalog:",
