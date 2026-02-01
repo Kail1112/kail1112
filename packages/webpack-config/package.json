@@ -18,6 +18,19 @@
     "build": "build-package --clear",
     "dev": "pnpm build --watch"
   },
+  "dependencies": {
+    "@kail1112/find-unused-modules-webpack-plugin": "workspace:^",
+    "@swc/core": "catalog:",
+    "core-js": "^3.0.0",
+    "css-loader": "^7.0.0",
+    "mini-css-extract-plugin": "^2.0.0",
+    "style-loader": "^4.0.0",
+    "swc-loader": "^0.1.0",
+    "yaml": "^2.0.0"
+  },
+  "peerDependencies": {
+    "webpack": "catalog:"
+  },
   "engines": {
     "node": ">=20",
     "npm": ">=10",

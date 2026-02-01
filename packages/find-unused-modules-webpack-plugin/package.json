@@ -21,9 +21,6 @@
   "dependencies": {
     "minimatch": "catalog:"
   },
-  "devDependencies": {
-    "webpack": "catalog:"
-  },
   "peerDependencies": {
     "webpack": "catalog:"
   },
