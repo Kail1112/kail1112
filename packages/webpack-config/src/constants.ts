@@ -5,13 +5,16 @@ export enum EXTENSIONS {
   TSX = 'tsx',
 }
 
-export const EXTENSION_LIST = Object.values(EXTENSIONS);
-
 export enum MODES {
   DEVELOPMENT = 'development',
   NONE = 'none',
   PRODUCTION = 'production',
 }
+
+const NODE_MODULES = ['', 'node_modules', ''];
+const SEPARATOR = '[\\\\/]';
+
+export const EXTENSION_LIST = Object.values(EXTENSIONS);
 
 export const REGEX = {
   MODULE: {
@@ -21,7 +24,15 @@ export const REGEX = {
     SWC: new RegExp(`\\.(${EXTENSION_LIST.join('|')})$`),
     YAML: /\.ya?ml$/,
   },
-  OPTIMIZATION: {},
+  OPTIMIZATION: {
+    POLYFILLS: new RegExp(
+      [...NODE_MODULES, '(core-js|core-js-pure|regenerator-runtime)', ''].join(SEPARATOR),
+    ),
+    REACT: new RegExp(
+      [...NODE_MODULES, '(react|react-dom|scheduler|react-router-dom)', ''].join(SEPARATOR),
+    ),
+    VENDORS: new RegExp(NODE_MODULES.join(SEPARATOR)),
+  },
 };
 
 export const RESOLVE_EXTENSIONS = EXTENSION_LIST.map((extension) => {

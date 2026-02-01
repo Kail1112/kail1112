@@ -1,4 +1,8 @@
+import browserslist from 'browserslist';
+import CssMinimizerPlugin from 'css-minimizer-webpack-plugin';
+import { browserslistToTargets } from 'lightningcss';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
+import TerserPlugin from 'terser-webpack-plugin';
 import type { Configuration } from 'webpack';
 import { parse as yamlParse } from 'yaml';
 
@@ -86,12 +90,6 @@ export const config = ({
                         syntax: 'typescript',
                         tsx: true,
                       },
-                      transform: {
-                        react: {
-                          development,
-                          runtime: 'automatic',
-                        },
-                      },
                     },
                   },
                 },
@@ -105,6 +103,61 @@ export const config = ({
       ],
       /** Without this setting, Webpack treats the import of non-existent exported modules as a "warning"  */
       strictExportPresence: true,
+    },
+    optimization: {
+      chunkIds: development
+        ? /** The names of chunks in the compiled code */
+          'named'
+        : 'deterministic',
+      mergeDuplicateChunks: true,
+      minimize: !development,
+      minimizer: [
+        new TerserPlugin({ minify: TerserPlugin.swcMinify, terserOptions: { mangle: true } }),
+        new CssMinimizerPlugin({
+          minify: CssMinimizerPlugin.lightningCssMinify,
+          minimizerOptions: {
+            /** Learning use the browserlist plugin */
+            targets: browserslistToTargets(browserslist()),
+          },
+        }),
+      ],
+      moduleIds: development
+        ? 'named'
+        : /** Ensures that the module IDs remain unchanged when new imports are added */
+          'deterministic',
+      /** Creates a single runtime file for all chunks */
+      runtimeChunk: 'single',
+      splitChunks: {
+        cacheGroups: {
+          /** Place all the polyfills and core-js in a separate file */
+          polyfill: {
+            /** It's better to download them right away */
+            chunks: 'initial',
+            name: 'polyfills',
+            /** The highest priority is to keep them away from vendors */
+            priority: 99,
+            reuseExistingChunk: true,
+            test: REGEX.OPTIMIZATION.POLYFILLS,
+          },
+          /** Transferring React to a separate file */
+          react: {
+            chunks: 'all',
+            name: 'react',
+            priority: 11,
+            reuseExistingChunk: true,
+            test: REGEX.OPTIMIZATION.REACT,
+          },
+          /** Other dependencies */
+          vendors: {
+            chunks: 'all',
+            name: 'vendors',
+            priority: 10,
+            reuseExistingChunk: true,
+            test: REGEX.OPTIMIZATION.VENDORS,
+          },
+        },
+        chunks: 'all',
+      },
     },
     /**
      * By default, Webpack is configured to "protect users"

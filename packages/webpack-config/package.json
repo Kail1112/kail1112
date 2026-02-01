@@ -21,11 +21,15 @@
   "dependencies": {
     "@kail1112/find-unused-modules-webpack-plugin": "workspace:^",
     "@swc/core": "catalog:",
+    "browserslist": "^4.0.0",
     "core-js": "^3.0.0",
     "css-loader": "^7.0.0",
+    "css-minimizer-webpack-plugin": "^7.0.0",
+    "lightningcss": "^1.0.0",
     "mini-css-extract-plugin": "^2.0.0",
     "style-loader": "^4.0.0",
     "swc-loader": "^0.1.0",
+    "terser-webpack-plugin": "^5.0.0",
     "yaml": "^2.0.0"
   },
   "peerDependencies": {
