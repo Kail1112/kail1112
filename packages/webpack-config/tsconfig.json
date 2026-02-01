@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": true,
+    "module": "ES2022",
+    "moduleResolution": "node",
+    "outDir": "./build/types"
+  },
+  "exclude": ["node_modules", "build"],
+  "extends": "../../tsconfig.json",
+  "include": ["src/**/*.ts"]
+}
